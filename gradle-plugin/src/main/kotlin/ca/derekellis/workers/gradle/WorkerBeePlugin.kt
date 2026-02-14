@@ -15,15 +15,27 @@ class WorkerBeePlugin : Plugin<Project> {
     val kotlinExtension = target.extensions.findByType(KotlinMultiplatformExtension::class.java)
       ?: return
 
+    val writeWebpackConfigTask = target.tasks.register("writeWorkerWebpackConfig", WriteWebpackConfigTask::class.java) { writeWebpackConfig ->
+      writeWebpackConfig.target.set("webworker")
+    }
+
     kotlinExtension.targets.withType(KotlinJsIrTarget::class.java).configureEach { kotlinTarget ->
       kotlinTarget.binaries.configureEach { kotlinBinary ->
         target.createConsumableConfiguration(kotlinBinary.mode)
 
+        target.tasks.withType(KotlinWebpack::class.java).configureEach { kotlinWebpack ->
+          if (kotlinWebpack.name.contains(kotlinBinary.mode.capitalizedName())) {
+            kotlinWebpack.dependsOn(writeWebpackConfigTask)
+          }
+        }
+
         val zipTask = target.tasks.register("zip${kotlinBinary.mode.capitalizedName()}WebpackOutput", Zip::class.java) { zip ->
-          val kotlinWebpack = target.tasks.named("jsBrowser${kotlinBinary.mode.capitalizedName()}Webpack", KotlinWebpack::class.java)
-          zip.from(kotlinWebpack.flatMap { it.outputDirectory })
+          val kotlinWebpack =  target.tasks.named("jsBrowser${kotlinBinary.mode.capitalizedName()}Webpack", KotlinWebpack::class.java)
+          zip.from(kotlinWebpack.map { it.outputDirectory.asFileTree })
           zip.archiveBaseName.set("${target.name}${kotlinBinary.mode.capitalizedName()}")
           zip.dependsOn(kotlinWebpack)
+
+          zip.outputs.upToDateWhen { kotlinWebpack.get().state.upToDate }
         }
 
         target.artifacts.add(
