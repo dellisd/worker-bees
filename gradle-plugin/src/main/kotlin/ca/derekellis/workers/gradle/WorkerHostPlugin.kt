@@ -6,7 +6,9 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.attributes.Usage
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.ir.JsIrBinary
@@ -25,9 +27,21 @@ class WorkerHostPlugin : Plugin<Project> {
     kotlinExtension.targets.withType(KotlinJsIrTarget::class.java).configureEach { kotlinTarget ->
       kotlinTarget.binaries.configureEach { kotlinBinary ->
         val config = target.createResolvableConfiguration(kotlinBinary.mode, parentConfiguration)
+        val workerDirectory =
+          target.layout.buildDirectory.dir("workers/${kotlinBinary.mode.toString().lowercase()}").get().asFile
 
-        configureKotlinBinaryWebpackTask(target, kotlinBinary, config.get())
-        configureKotlinBinaryDistributionTask(target, kotlinBinary, config.get())
+        val copyTask =
+          target.tasks.register("unzip${kotlinBinary.mode.capitalizedName()}Workers", Copy::class.java) { copy ->
+            copy.dependsOn(config)
+            config.get().forEach { file ->
+              copy.from(target.zipTree(file))
+            }
+
+            copy.destinationDir = workerDirectory
+          }
+
+        configureKotlinBinaryWebpackTask(target, kotlinBinary, copyTask)
+        configureKotlinBinaryDistributionTask(target, kotlinBinary, copyTask)
       }
     }
   }
@@ -48,11 +62,12 @@ class WorkerHostPlugin : Plugin<Project> {
   private fun configureKotlinBinaryWebpackTask(
     target: Project,
     kotlinBinary: JsIrBinary,
-    resolvableConfiguration: ResolvableConfiguration
+    workerTask: TaskProvider<Copy>,
   ) {
     target.tasks.withType(KotlinWebpack::class.java).configureEach { kotlinWebpack ->
-      if (kotlinWebpack.mode sameAs kotlinBinary.mode) {
-        val workerDirs = resolvableConfiguration.files.map { it.parent }.toMutableList()
+      if (kotlinWebpack.name.contains(kotlinBinary.mode.capitalizedName())) {
+        val workerDirs = mutableListOf(workerTask.get().destinationDir.path)
+        kotlinWebpack.dependsOn(workerTask)
         kotlinWebpack.webpackConfigApplier {
           if (it.devServer == null) {
             it.devServer = KotlinWebpackConfig.DevServer(static = workerDirs)
@@ -69,14 +84,18 @@ class WorkerHostPlugin : Plugin<Project> {
   private fun configureKotlinBinaryDistributionTask(
     target: Project,
     kotlinBinary: JsIrBinary,
-    resolvableConfiguration: ResolvableConfiguration
+    workerTask: TaskProvider<Copy>,
   ) {
     val modeTaskName =
-      "jsBrowser${kotlinBinary.distribution.distributionName.get().replaceFirstChar { it.uppercase() }}Distribution"
+      if (kotlinBinary.mode == KotlinJsBinaryMode.DEVELOPMENT) {
+        "jsBrowser${kotlinBinary.distribution.distributionName.get().replaceFirstChar { it.uppercase() }}Distribution"
+      } else {
+        "jsBrowserDistribution"
+      }
 
     target.tasks.withType(Sync::class.java) { syncTask ->
       if (syncTask.name == modeTaskName) {
-        syncTask.from(resolvableConfiguration)
+        syncTask.from(workerTask.map { it.destinationDir })
       }
     }
   }
