@@ -30,7 +30,5 @@ dependencyResolutionManagement {
 
 include(":runtime")
 include(":browser-runtime")
+include(":gradle-plugin")
 include(":worker-runtime")
-include(":sample:api")
-include(":sample:browser")
-include(":sample:worker")

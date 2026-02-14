@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.kotlinMultiplatform)
   alias(libs.plugins.composeMultiplatform)
   alias(libs.plugins.composeCompiler)
+  id("ca.derekellis.worker-host")
 }
 
 kotlin {
@@ -13,10 +14,10 @@ kotlin {
   sourceSets {
     val jsMain by getting {
       dependencies {
-        api(projects.browserRuntime)
+        api("ca.derekellis.worker:browser-runtime")
         api(libs.kotlin.coroutines)
 
-        implementation(projects.sample.api)
+        implementation(projects.api)
         implementation(compose.runtime)
         implementation(compose.html.core)
       }
@@ -28,19 +29,10 @@ kotlin {
   }
 }
 
-val workerDependencies by configurations.dependencyScope("workerDependencies")
-val workerConfiguration by configurations.resolvable("worker") {
-  extendsFrom(workerDependencies)
-
-  attributes {
-    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "web-worker"))
-  }
-}
-
 dependencies {
- workerDependencies(projects.sample.worker)
+  add("worker", projects.worker)
 }
 
-tasks.named<ProcessResources>("jsProcessResources").configure {
-  from(workerConfiguration)
+tasks.named("jsBrowserDevelopmentWebpack").configure {
+  println(this::class)
 }

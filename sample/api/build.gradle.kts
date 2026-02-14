@@ -10,7 +10,7 @@ kotlin {
   sourceSets {
     val jsMain by getting {
       dependencies {
-        api(projects.runtime)
+        api("ca.derekellis.worker:runtime")
         api(libs.kotlin.coroutines)
       }
     }

@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
   alias(libs.plugins.kotlinMultiplatform)
+  id("ca.derekellis.worker")
 }
 
 kotlin {
@@ -18,10 +19,10 @@ kotlin {
   sourceSets {
     val jsMain by getting {
       dependencies {
-        api(projects.workerRuntime)
+        api("ca.derekellis.worker:worker-runtime")
         api(libs.kotlin.coroutines)
 
-        implementation(projects.sample.api)
+        implementation(projects.api)
       }
     }
 
@@ -31,14 +32,3 @@ kotlin {
   }
 }
 
-configurations {
-  consumable("worker") {
-    attributes {
-      attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "web-worker"))
-    }
-  }
-}
-
-artifacts {
-  add("worker", tasks.named<KotlinWebpack>("jsBrowserDevelopmentWebpack").flatMap { it.mainOutputFile })
-}
