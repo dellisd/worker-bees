@@ -1,23 +1,19 @@
 package ca.derekellis.workers.gradle
 
+import java.io.File
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 
 internal abstract class WriteWebpackConfigTask : DefaultTask() {
 
   @get:OutputFile
-  val webpackConfigFile: File by lazy {
-    project.projectDir.resolve(generatedFilePath)
-  }
+  val webpackConfigFile: File by lazy { project.projectDir.resolve(generatedFilePath) }
 
-  @get:Optional
-  @get:Input
-  abstract val target: Property<String>
+  @get:Optional @get:Input abstract val target: Property<String>
 
   @TaskAction
   fun task() {
@@ -36,7 +32,8 @@ internal abstract class WriteWebpackConfigTask : DefaultTask() {
         |//
         |config.target = "$target"
         |
-        """.trimMargin(),
+        """
+          .trimMargin()
       )
     } else {
       webpackConfigFile.delete()

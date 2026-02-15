@@ -15,31 +15,17 @@ fun main() {
   val worker = WorkerHandle(Worker("/worker.js"))
 
   val testService = worker.takeBinding(TestService::class, ::BoundTestService)
-  
+
   renderComposable(rootElementId = "root") {
     var message by remember { mutableStateOf<String?>(null) }
     var value by remember { mutableStateOf<Int?>(null) }
-    Div {
-      Text("Hello World")
-    }
-    message?.let {
-      Div {
-        Text(it)
-      }
-    }
+    Div { Text("Hello World") }
+    message?.let { Div { Text(it) } }
 
-    value?.let {
-      Div {
-        Text("Squared value: $it")
-      }
-    }
+    value?.let { Div { Text("Squared value: $it") } }
 
-    LaunchedEffect(Unit) {
-      message = testService.test()
-    }
+    LaunchedEffect(Unit) { message = testService.test() }
 
-    LaunchedEffect(Unit) {
-      value = testService.square(5)
-    }
+    LaunchedEffect(Unit) { value = testService.square(5) }
   }
 }

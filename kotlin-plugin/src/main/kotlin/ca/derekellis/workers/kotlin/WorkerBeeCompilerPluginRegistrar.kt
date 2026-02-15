@@ -9,17 +9,12 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 
 @OptIn(ExperimentalCompilerApi::class)
 class WorkerBeeCompilerPluginRegistrar : CompilerPluginRegistrar() {
-  override fun ExtensionStorage.registerExtensions(
-    configuration: CompilerConfiguration
-  ) {
-    val messageCollector = configuration.get(
-      CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY,
-      MessageCollector.NONE,
-    )
-    IrGenerationExtension.registerExtension(
-      WorkerBeeIrGenerationExtension(messageCollector),
-    )
+  override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+    val messageCollector =
+      configuration.get(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+    IrGenerationExtension.registerExtension(WorkerBeeIrGenerationExtension(messageCollector))
   }
 
-  override val supportsK2: Boolean get() = true
+  override val supportsK2: Boolean
+    get() = true
 }

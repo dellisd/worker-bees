@@ -8,6 +8,5 @@ interface WorkerServiceBinding<T : WorkerService> : AutoCloseable {
 
   suspend fun invoke(functionName: String, vararg args: JsonElement): JsonElement
 
-  override fun close() {
-  }
+  override fun close() {}
 }

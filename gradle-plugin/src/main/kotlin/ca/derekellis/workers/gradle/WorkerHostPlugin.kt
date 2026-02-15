@@ -19,8 +19,8 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 @Suppress("unused", "UnstableApiUsage")
 class WorkerHostPlugin : Plugin<Project> {
   override fun apply(target: Project) {
-    val kotlinExtension = target.extensions.findByType(KotlinMultiplatformExtension::class.java)
-      ?: return
+    val kotlinExtension =
+      target.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return
 
     val parentConfiguration = target.configurations.dependencyScope(CONFIGURATION_PREFIX)
 
@@ -28,14 +28,18 @@ class WorkerHostPlugin : Plugin<Project> {
       kotlinTarget.binaries.configureEach { kotlinBinary ->
         val config = target.createResolvableConfiguration(kotlinBinary.mode, parentConfiguration)
         val workerDirectory =
-          target.layout.buildDirectory.dir("workers/${kotlinBinary.mode.toString().lowercase()}").get().asFile
+          target.layout.buildDirectory
+            .dir("workers/${kotlinBinary.mode.toString().lowercase()}")
+            .get()
+            .asFile
 
         val copyTask =
-          target.tasks.register("unzip${kotlinBinary.mode.capitalizedName()}Workers", Copy::class.java) { copy ->
+          target.tasks.register(
+            "unzip${kotlinBinary.mode.capitalizedName()}Workers",
+            Copy::class.java,
+          ) { copy ->
             copy.dependsOn(config)
-            config.get().forEach { file ->
-              copy.from(target.zipTree(file))
-            }
+            config.get().forEach { file -> copy.from(target.zipTree(file)) }
 
             copy.destinationDir = workerDirectory
           }
@@ -48,12 +52,15 @@ class WorkerHostPlugin : Plugin<Project> {
 
   private fun Project.createResolvableConfiguration(
     mode: KotlinJsBinaryMode,
-    parent: NamedDomainObjectProvider<DependencyScopeConfiguration>
+    parent: NamedDomainObjectProvider<DependencyScopeConfiguration>,
   ): NamedDomainObjectProvider<ResolvableConfiguration> {
     return configurations.resolvable(workerConfigurationName(mode)) { configuration ->
       configuration.extendsFrom(parent.get())
       configuration.attributes {
-        it.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, WORKER_CONFIGURATION_USAGE))
+        it.attribute(
+          Usage.USAGE_ATTRIBUTE,
+          objects.named(Usage::class.java, WORKER_CONFIGURATION_USAGE),
+        )
         it.attribute(KOTLIN_JS_MODE_ATTRIBUTE, mode)
       }
     }
