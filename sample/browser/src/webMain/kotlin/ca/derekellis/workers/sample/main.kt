@@ -14,7 +14,7 @@ import org.w3c.dom.Worker
 fun main() {
   val worker = WorkerHandle(Worker("/worker.js"))
 
-  val testService = worker.takeBinding(TestService::class, ::BoundTestService)
+  val testService = worker.takeBinding<TestService>("testService", ::BoundTestService)
 
   renderComposable(rootElementId = "root") {
     var message by remember { mutableStateOf<String?>(null) }

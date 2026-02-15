@@ -1,6 +1,5 @@
 package ca.derekellis.workers
 
-import kotlin.reflect.KClass
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
@@ -23,11 +22,11 @@ class WorkerHandle(private val worker: Worker) : AutoCloseable {
 
   private var messageCounter = 0
 
-  fun <T : WorkerService> takeBinding(clazz: KClass<T>, binder: (WorkerServiceBinding<T>) -> T): T {
+  fun <T : WorkerService> takeBinding(name: String, binder: (WorkerServiceBinding<T>) -> T): T {
     val deferredResponse =
       scope.async {
-        worker.sendMessage<WorkerMessage.Bind, WorkerMessage.BoundInstance>(
-          WorkerMessage.Bind(messageCounter++, clazz.simpleName!!)
+        worker.sendMessage<WorkerMessage.Take, WorkerMessage.BoundInstance>(
+          WorkerMessage.Take(messageCounter++, name, "")
         )
       }
 

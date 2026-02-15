@@ -8,6 +8,8 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 class WorkerBeeIrGenerationExtension(private val messageCollector: MessageCollector) :
   IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+    val workerBeeApis = WorkerBeeApis.maybeCreate(pluginContext) ?: return
+
     // TODO: do something
   }
 }
