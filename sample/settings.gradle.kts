@@ -38,6 +38,7 @@ includeBuild("..") {
     substitute(module("ca.derekellis.worker:runtime")).using(project(":runtime"))
     substitute(module("ca.derekellis.worker:browser-runtime")).using(project(":browser-runtime"))
     substitute(module("ca.derekellis.worker:worker-runtime")).using(project(":worker-runtime"))
+    substitute(module("ca.derekellis.worker:kotlin-plugin")).using(project(":kotlin-plugin"))
   }
 }
 

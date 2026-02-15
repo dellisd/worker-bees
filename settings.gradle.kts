@@ -31,4 +31,5 @@ dependencyResolutionManagement {
 include(":runtime")
 include(":browser-runtime")
 include(":gradle-plugin")
+include(":kotlin-plugin")
 include(":worker-runtime")
