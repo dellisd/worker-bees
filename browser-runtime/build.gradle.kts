@@ -21,5 +21,9 @@ kotlin {
       implementation(libs.kotlin.test)
     }
   }
+
+  compilerOptions {
+
+  }
 }
 

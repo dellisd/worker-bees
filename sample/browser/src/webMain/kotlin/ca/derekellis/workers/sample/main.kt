@@ -12,9 +12,9 @@ import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.Worker
 
 fun main() {
-  val worker = WorkerHandle(Worker("/worker.js"))
+  val worker = WorkerHandle.newWorkerHandle(Worker("/worker.js"))
 
-  val testService = worker.takeBinding<TestService>("testService", ::BoundTestService)
+  val testService = worker.take<TestService>("testService")
 
   renderComposable(rootElementId = "root") {
     var message by remember { mutableStateOf<String?>(null) }

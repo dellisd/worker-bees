@@ -1,5 +1,6 @@
 package ca.derekellis.workers
 
+import ca.derekellis.workers.internal.WorkerMessage
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
@@ -16,7 +17,7 @@ import org.w3c.dom.Worker
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
 
-class WorkerHandle(private val worker: Worker) : AutoCloseable {
+class WorkerHandles(private val worker: Worker) : AutoCloseable {
   private val scope = MainScope()
   private val json = Json { classDiscriminatorMode = ClassDiscriminatorMode.ALL_JSON_OBJECTS }
 
@@ -36,7 +37,7 @@ class WorkerHandle(private val worker: Worker) : AutoCloseable {
   private inner class ServiceBindingImpl<T : WorkerService>(
     private val deferred: Deferred<WorkerMessage.BoundInstance>
   ) : WorkerServiceBinding<T> {
-    override val json: Json = this@WorkerHandle.json
+    override val json: Json = this@WorkerHandles.json
 
     override suspend fun invoke(functionName: String, vararg args: JsonElement): JsonElement {
       val instanceId = deferred.await().instanceId
@@ -62,7 +63,7 @@ class WorkerHandle(private val worker: Worker) : AutoCloseable {
         override fun handleEvent(event: Event) {
           console.dir(event)
           val data = json.decodeFromDynamic<WorkerMessage>(event.unsafeCast<MessageEvent>().data)
-          if (data.id != message.id) return
+          if (data.callId != message.callId) return
 
           continuation.resume(data as R) { _, _, _ -> }
           this@sendMessage.removeEventListener("message", this)

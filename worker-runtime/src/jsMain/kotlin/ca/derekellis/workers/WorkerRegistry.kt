@@ -1,5 +1,6 @@
 package ca.derekellis.workers
 
+import ca.derekellis.workers.internal.WorkerMessage
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.ClassDiscriminatorMode
@@ -45,25 +46,25 @@ class WorkerRegistry {
         "No instance bound with name ${take.name} for class ${take.className}"
       )
 
-    return WorkerMessage.BoundInstance(take.id, take.name)
+    return WorkerMessage.BoundInstance(take.callId, take.name)
   }
 
   private suspend fun handleFunctionCall(
     functionCall: WorkerMessage.FunctionCall
   ): WorkerMessage.FunctionResult {
     val boundInstance =
-      boundInstances[functionCall.instanceId]
-        ?: throw IllegalStateException("No instance found for ${functionCall.instanceId}")
+      boundInstances[functionCall.serviceName]
+        ?: throw IllegalStateException("No instance found for ${functionCall.serviceName}")
 
     val result =
       boundInstance.invocationHandler.handle(
         instance = boundInstance.instance.unsafeCast<WorkerService>(),
-        functionName = functionCall.functionName,
+        functionName = functionCall.functionId,
         args = json.decodeFromString(functionCall.encodedArgs),
       )
 
     return WorkerMessage.FunctionResult(
-      functionCall.id,
+      functionCall.callId,
       JSON.stringify(json.encodeToDynamic(result)),
     )
   }

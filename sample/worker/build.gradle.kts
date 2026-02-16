@@ -20,6 +20,7 @@ kotlin {
     val jsMain by getting {
       dependencies {
         api("ca.derekellis.worker:worker-runtime")
+        api("ca.derekellis.worker:runtime")
         api(libs.kotlin.coroutines)
 
         implementation(projects.api)
