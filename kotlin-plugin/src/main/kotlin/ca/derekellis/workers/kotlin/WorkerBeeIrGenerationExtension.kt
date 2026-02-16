@@ -1,5 +1,6 @@
 package ca.derekellis.workers.kotlin
 
+import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -9,6 +10,8 @@ class WorkerBeeIrGenerationExtension(private val messageCollector: MessageCollec
   IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     val workerBeeApis = WorkerBeeApis.maybeCreate(pluginContext) ?: return
+
+    val transformer = object : IrElementTransformerVoidWithContext() {}
 
     // TODO: do something
   }

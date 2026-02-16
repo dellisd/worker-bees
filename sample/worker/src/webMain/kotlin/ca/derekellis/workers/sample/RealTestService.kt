@@ -8,4 +8,6 @@ class RealTestService : TestService {
   override suspend fun square(value: Int): Int {
     return value * value
   }
+
+  fun hello() {}
 }

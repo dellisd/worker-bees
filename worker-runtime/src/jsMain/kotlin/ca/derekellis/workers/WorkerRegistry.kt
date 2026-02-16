@@ -16,10 +16,7 @@ class WorkerRegistry {
 
   private val boundInstances = mutableMapOf<String, BoundInstance>()
 
-  private var idCounter = 1
-
   fun init() {
-    console.dir(self)
     val messageListener =
       object : EventListener {
         override fun handleEvent(event: Event) {
@@ -69,6 +66,10 @@ class WorkerRegistry {
       functionCall.id,
       JSON.stringify(json.encodeToDynamic(result)),
     )
+  }
+
+  fun <T : WorkerService> bind(name: String, instance: T) {
+    error("Unexpected call to WorkerRegistry.bind. Is the worker-bee plugin applied?")
   }
 
   @Suppress("UNCHECKED_CAST")

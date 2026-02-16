@@ -6,13 +6,17 @@ import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 
 @OptIn(ExperimentalCompilerApi::class)
 class WorkerBeeCompilerPluginRegistrar : CompilerPluginRegistrar() {
   override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
     val messageCollector =
       configuration.get(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+
     IrGenerationExtension.registerExtension(WorkerBeeIrGenerationExtension(messageCollector))
+
+    FirExtensionRegistrarAdapter.registerExtension(WorkerBeeFirExtensionRegistrar())
   }
 
   override val supportsK2: Boolean

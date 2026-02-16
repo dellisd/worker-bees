@@ -1,15 +1,38 @@
 package ca.derekellis.workers.gradle
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.bundling.Zip
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
+import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
-class WorkerBeePlugin : Plugin<Project> {
+class WorkerBeePlugin : KotlinCompilerPluginSupportPlugin {
+  override fun applyToCompilation(
+    kotlinCompilation: KotlinCompilation<*>
+  ): Provider<List<SubpluginOption>> {
+    return kotlinCompilation.target.project.provider {
+      listOf() // No options.
+    }
+  }
+
+  override fun getCompilerPluginId(): String = "ca.derekellis.workers.kotlin"
+
+  override fun getPluginArtifact(): SubpluginArtifact =
+    SubpluginArtifact(
+      groupId = "ca.derekellis.worker",
+      artifactId = "kotlin-plugin",
+      // version TODO
+    )
+
+  override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
+
   override fun apply(target: Project) {
     val kotlinExtension =
       target.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return
