@@ -1,8 +1,13 @@
 package ca.derekellis.workers.internal
 
-internal class OutboundHandler(private val serviceName: String, private val endpoint: Endpoint) {
-  suspend fun call(function: FunctionHandler<*>, args: List<*>): Any? {
-    val functionCall = newFunctionCall(function, args)
+internal class OutboundHandler(
+  private val serviceName: String,
+  private val serviceType: WorkerServiceType<*>,
+  private val endpoint: Endpoint,
+) {
+  suspend fun call(functionId: String, vararg args: Any?): Any? {
+    val function = serviceType.functionsById.getValue(functionId)
+    val functionCall = newFunctionCall(function, args.toList())
     val result =
       endpoint.workerBridge.postMessage(functionCall, endpoint.workerMessageCodec)
         as WorkerMessage.FunctionResult

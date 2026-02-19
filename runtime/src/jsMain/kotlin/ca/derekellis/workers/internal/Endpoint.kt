@@ -4,29 +4,45 @@ import ca.derekellis.workers.WorkerService
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.ClassDiscriminatorMode
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 
-internal class Endpoint(val workerBridge: WorkerBridge) {
+internal class Endpoint(
+  val workerBridge: WorkerBridge,
+  val userSerializersModule: SerializersModule,
+) {
   private var messageCounter: Int = 0
 
   val json = Json {
-    encodeDefaults = false
+    // For backwards-compatibility, allow new fields to be introduced.
+    ignoreUnknownKeys = true
+
+    // Because host and JS may disagree on default values, it's best to encode them.
+    encodeDefaults = true
+
+    // Support map keys whose values are arrays or objects.
+    allowStructuredMapKeys = true
 
     classDiscriminatorMode = ClassDiscriminatorMode.ALL_JSON_OBJECTS
+
+    serializersModule = SerializersModule { include(userSerializersModule) }
   }
 
   val workerMessageCodec = WorkerMessage.Codec(json)
   private val boundServices = mutableMapOf<String, BoundInstance<*>>()
+  private val serviceTypeCache = mutableMapOf<String, WorkerServiceType<*>>()
 
   internal fun <T : WorkerService> bind(
     name: String,
     instance: T,
     serviceAdapter: WorkerServiceAdapter<T>,
   ) {
-    boundServices[name] = BoundInstance(name, instance, serviceAdapter)
+    val serviceType = serviceType(serviceAdapter)
+    boundServices[name] = BoundInstance(name, instance, serviceAdapter, serviceType)
   }
 
   internal fun <T : WorkerService> take(name: String, serviceAdapter: WorkerServiceAdapter<T>): T {
-    return serviceAdapter.outboundService(OutboundHandler(name, this))
+    val serviceType = serviceType(serviceAdapter)
+    return serviceAdapter.outboundService(OutboundHandler(name, serviceType, this))
   }
 
   fun newCallId(): Int = messageCounter++
@@ -55,12 +71,21 @@ internal class Endpoint(val workerBridge: WorkerBridge) {
   }
 
   @Suppress("UNCHECKED_CAST")
+  private fun <T : WorkerService> serviceType(
+    adapter: WorkerServiceAdapter<T>
+  ): WorkerServiceType<T> {
+    return serviceTypeCache.getOrPut(adapter.name) {
+      WorkerServiceType(adapter.name, adapter.functionHandlers(json.serializersModule))
+    } as WorkerServiceType<T>
+  }
+
+  @Suppress("UNCHECKED_CAST")
   suspend fun routeFunctionCall(call: WorkerMessage.FunctionCall): WorkerMessage.FunctionResult {
     val binding =
       boundServices[call.serviceName] as? BoundInstance<WorkerService>
         ?: throw IllegalArgumentException("Binding not found")
     val handler =
-      binding.serviceAdapter.functionHandlers[call.functionId]
+      binding.serviceType.functionsById[call.functionId]
         ?: throw IllegalArgumentException("Function handler not found for ${call.functionId}")
 
     val args = json.decodeFromString(handler.argsListSerializer, call.encodedArgs)
@@ -75,5 +100,6 @@ internal class Endpoint(val workerBridge: WorkerBridge) {
     val name: String,
     val instance: T,
     val serviceAdapter: WorkerServiceAdapter<T>,
+    val serviceType: WorkerServiceType<T>,
   )
 }

@@ -7,6 +7,8 @@ import ca.derekellis.workers.internal.WorkerWorkerBridge
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlinx.serialization.modules.SerializersModule
 import org.w3c.dom.Worker
 
 class WorkerHandle internal constructor(private val endpoint: Endpoint) : AutoCloseable {
@@ -42,12 +44,17 @@ class WorkerHandle internal constructor(private val endpoint: Endpoint) : AutoCl
   }
 
   companion object {
-    fun newWorkerHandle(worker: Worker): WorkerHandle {
-      return WorkerHandle(Endpoint(BrowserWorkerBridge(worker)))
+    fun newWorkerHandle(
+      worker: Worker,
+      serializersModule: SerializersModule = EmptySerializersModule(),
+    ): WorkerHandle {
+      return WorkerHandle(Endpoint(BrowserWorkerBridge(worker), serializersModule))
     }
 
-    fun newHostHandle(): WorkerHandle {
-      return WorkerHandle(Endpoint(WorkerWorkerBridge()))
+    fun newHostHandle(
+      serializersModule: SerializersModule = EmptySerializersModule()
+    ): WorkerHandle {
+      return WorkerHandle(Endpoint(WorkerWorkerBridge(), serializersModule))
     }
   }
 }
