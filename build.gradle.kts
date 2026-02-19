@@ -11,5 +11,6 @@ spotless {
   kotlin {
     target("**/*.kt")
     ktfmt(libs.ktfmt.get().version).googleStyle()
+    targetExclude("kotlin-plugin-tests/src/test/data/**/*.kt")
   }
 }

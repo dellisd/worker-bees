@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly(kotlin("compiler-embeddable"))
+  compileOnly(kotlin("compiler"))
   compileOnly(kotlin("stdlib"))
 }
 
