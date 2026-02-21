@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirSimpleFunctionChecker
-import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isInterface
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 
 class WorkerBeeFunctionChecker : FirSimpleFunctionChecker(MppCheckerKind.Platform) {
   context(context: CheckerContext, reporter: DiagnosticReporter)
-  override fun check(declaration: FirSimpleFunction) {
+  override fun check(declaration: FirNamedFunction) {
     val containingClassSymbol =
       declaration.dispatchReceiverType?.toRegularClassSymbol(context.session)
     if (!containingClassSymbol.isWorkerService(context.session)) return

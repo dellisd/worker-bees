@@ -10,6 +10,9 @@ import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 
 @OptIn(ExperimentalCompilerApi::class)
 class WorkerBeeCompilerPluginRegistrar : CompilerPluginRegistrar() {
+  override val pluginId: String
+    get() = PLUGIN_ID
+
   override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
     val messageCollector =
       configuration.get(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)

@@ -166,7 +166,7 @@ internal class WorkerServiceAdapterGenerator(
 
     adapterClass.addFakeOverrides(
       irTypeSystemContext,
-      listOf(functionHandlersFunction, outboundServiceFunction),
+      mapOf(adapterClass to listOf(functionHandlersFunction, outboundServiceFunction)),
     )
 
     companion.declarations += adapterClass
