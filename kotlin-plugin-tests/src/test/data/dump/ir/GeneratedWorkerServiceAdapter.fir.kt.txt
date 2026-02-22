@@ -1,0 +1,71 @@
+interface SampleService : WorkerService {
+  companion object Companion {
+    internal class Adapter : WorkerServiceAdapter<SampleService> {
+      override val name: String
+        field = "SampleService"
+        override get
+
+      override val serializers: List<KSerializer<*>>
+        field = serializers
+        override get
+
+      private class FunctionAdapter0 : FunctionHandler<SampleService> {
+        constructor(argSerializers: List<KSerializer<*>>, resultSerializer: KSerializer<*>) /* primary */ {
+          super/*FunctionHandler*/<SampleService>(id = "5MBxbdO6", argSerializers = argSerializers, resultSerializer = resultSerializer)
+          /* <init>() */
+
+        }
+
+        override suspend fun call(instance: SampleService, args: List<*>): Any? {
+          return instance.hello(message = args.get(index = 0))
+        }
+
+      }
+
+      private class GeneratedOutboundService : SampleService, OutboundService {
+        override val handler: OutboundHandler
+          field = handler
+          override get
+
+        constructor(handler: OutboundService) /* primary */ {
+          super/*Any*/()
+          /* <init>() */
+
+        }
+
+        override suspend fun hello(message: String): String {
+          val tmp0_handler: OutboundHandler = <this>.<get-handler>()
+          return tmp0_handler.call(functionId = "5MBxbdO6", args = [message]) as String
+        }
+
+      }
+
+      internal constructor(serializers: List<KSerializer<*>>) /* primary */ {
+        super/*WorkerServiceAdapter*/<SampleService>()
+        /* <init>() */
+
+      }
+
+      override fun functionHandlers(serializersModule: SerializersModule): List<FunctionHandler<SampleService>> {
+        val tmp0_serializers: List<KSerializer<*>> = <this>.<get-serializers>()
+        val tmp_0: KSerializer<*> = serializer<String>(/* <this> = serializersModule */)
+        return listOf<FunctionHandler<SampleService>>(elements = [FunctionAdapter0(argSerializers = listOf<KSerializer<*>>(elements = [tmp_0]), resultSerializer = tmp_0)])
+      }
+
+      override fun outboundService(outboundHandler: OutboundHandler): SampleService {
+        return GeneratedOutboundService(handler = outboundHandler)
+      }
+
+    }
+
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+  }
+
+  abstract suspend fun hello(message: String): String
+
+}

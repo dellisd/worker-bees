@@ -1,0 +1,10 @@
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: false
+// - Show declarations: true
+
+// Library unique name: <main>
+abstract interface /SampleService : ca.derekellis.workers/WorkerService { // /SampleService|null[0]
+    abstract suspend fun hello(kotlin/String): kotlin/String // /SampleService.hello|hello(kotlin.String){}[0]
+    final object Companion // /SampleService.Companion|null[0]
+}

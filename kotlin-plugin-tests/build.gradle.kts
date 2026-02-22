@@ -22,8 +22,9 @@ dependencies {
   testImplementation(libs.assertk)
   testImplementation(libs.kotlin.coroutines.test)
 
-  testJsRuntime(projects.runtime) { isTransitive = false }
+  testJsRuntime(projects.runtime)
   testJsRuntime(kotlin("stdlib"))
+  testJsRuntime(kotlin("test-js"))
 
   testRuntimeOnly(kotlin("reflect"))
   testRuntimeOnly(kotlin("test"))
@@ -44,6 +45,7 @@ tasks.register<JavaExec>("generateTests") {
 }
 
 tasks.withType<Test> {
+  dependsOn(testJsRuntime)
   inputs
     .dir(layout.projectDirectory.dir("src/test/data"))
     .withPropertyName("testData")

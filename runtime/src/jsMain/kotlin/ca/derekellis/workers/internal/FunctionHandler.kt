@@ -10,6 +10,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+@PublishedApi
 internal abstract class FunctionHandler<T : WorkerService>(
   val id: String,
   argSerializers: List<KSerializer<*>>,

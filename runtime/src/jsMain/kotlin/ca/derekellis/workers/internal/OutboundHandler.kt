@@ -1,5 +1,6 @@
 package ca.derekellis.workers.internal
 
+@PublishedApi
 internal class OutboundHandler(
   private val serviceName: String,
   private val serviceType: WorkerServiceType<*>,

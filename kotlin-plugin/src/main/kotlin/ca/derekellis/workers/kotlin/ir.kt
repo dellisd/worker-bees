@@ -62,6 +62,7 @@ import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.StandardClassIds
 
@@ -86,9 +87,9 @@ internal val IrSimpleFunction.signature: String
       append("(")
       parameters
         .filter { it.kind == IrParameterKind.Regular }
-        .joinTo(this) { (it.type as IrSimpleType).toString() }
+        .joinTo(this) { (it.type as IrSimpleType).render() }
       append("): ")
-      append((returnType as IrSimpleType).toString())
+      append((returnType as IrSimpleType).render())
     }
   }
 

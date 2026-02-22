@@ -9,6 +9,7 @@ fun main() {
       testsRoot = "kotlin-plugin-tests/src/test/java",
     ) {
       testClass<AbstractDiagnosticTest> { model("diagnostic") }
+      testClass<AbstractDumpTest> { model("dump") }
     }
   }
 }

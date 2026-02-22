@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addTypeParameter
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
-import org.jetbrains.kotlin.ir.builders.declarations.buildConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.builders.irAs
@@ -17,6 +16,7 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irExprBody
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.builders.irTemporary
@@ -113,8 +113,8 @@ internal class WorkerServiceAdapterGenerator(
         }
 
     val constructor =
-      irFactory
-        .buildConstructor {
+      adapterClass
+        .addConstructor {
           initDefaults(original)
           visibility = DescriptorVisibilities.INTERNAL
         }
@@ -163,6 +163,8 @@ internal class WorkerServiceAdapterGenerator(
     val outboundServiceClass = irOutboundServiceClass(adapterClass, bridgingHelper)
     val outboundServiceFunction =
       irOutboundServiceFunction(bridgingHelper, adapterClass, outboundServiceClass)
+
+    adapterClass.declarations += outboundServiceClass
 
     adapterClass.addFakeOverrides(
       irTypeSystemContext,
@@ -486,9 +488,24 @@ internal class WorkerServiceAdapterGenerator(
           }
         }
 
-    callFunction.irFunctionBody(context = pluginContext, scopeOwnerSymbol = callFunction.symbol) {}
+    callFunction.irFunctionBody(context = pluginContext, scopeOwnerSymbol = callFunction.symbol) {
+      // return instance.function(args[0], args[1], ...)
+      +irReturn(
+        irCall(bridgedFunction).apply {
+          dispatchReceiver = irGet(callFunction.parameters[1])
 
-    // TODO: Implement call(instance: T, args: List<*>): Any?
+          bridgedFunction.owner.parameters
+            .filter { it.kind == IrParameterKind.Regular }
+            .forEachIndexed { i, param ->
+              arguments[i + 1] =
+                irCall(workerBeeApis.listGetFunction).apply {
+                  dispatchReceiver = irGet(callFunction.parameters[2])
+                  arguments[1] = irInt(i)
+                }
+            }
+        }
+      )
+    }
 
     return functionClass
   }
@@ -519,6 +536,9 @@ internal class WorkerServiceAdapterGenerator(
             type = defaultDispatchReceiver
           }
         }
+
+    declarations += function
+    function.parent = this@irBridgedFunction
 
     // We don't support property because they can't suspend
 

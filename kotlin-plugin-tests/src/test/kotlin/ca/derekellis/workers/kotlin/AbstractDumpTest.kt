@@ -1,13 +1,12 @@
 package ca.derekellis.workers.kotlin
 
-import org.jetbrains.kotlin.platform.js.JsPlatforms
-import org.jetbrains.kotlin.test.TargetBackend
+import org.jetbrains.kotlin.js.test.runners.AbstractLightTreeJsIrTextTest
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
-import org.jetbrains.kotlin.test.model.DependencyKind
-import org.jetbrains.kotlin.test.runners.AbstractFirLightTreeDiagnosticsTest
+import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_IR
+import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_KT_IR
 import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 
-open class AbstractDiagnosticTest : AbstractFirLightTreeDiagnosticsTest() {
+abstract class AbstractDumpTest : AbstractLightTreeJsIrTextTest() {
   override fun createKotlinStandardLibrariesPathProvider(): KotlinStandardLibrariesPathProvider {
     return ClasspathBasedStandardLibrariesPathProvider
   }
@@ -16,13 +15,12 @@ open class AbstractDiagnosticTest : AbstractFirLightTreeDiagnosticsTest() {
     super.configure(builder)
 
     with(builder) {
-      globalDefaults {
-        targetPlatform = JsPlatforms.defaultJsPlatform
-        targetBackend = TargetBackend.JS_IR
-        dependencyKind = DependencyKind.Source
-      }
-
       configurePlugin()
+
+      defaultDirectives {
+        +DUMP_KT_IR
+        -DUMP_IR
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ import org.w3c.dom.Worker
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventListener
 
+@PublishedApi
 internal interface WorkerBridge {
   fun incomingMessages(codec: WorkerMessage.Codec): Flow<WorkerMessage>
 

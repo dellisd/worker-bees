@@ -241,7 +241,8 @@ internal class BridgingHelper(
 
   companion object {
     /** Don't bridge these. */
-    internal val NON_INTERFACE_FUNCTION_NAMES = setOf("equals", "hashCode", "toString")
+    // TODO: Deal with `close`
+    internal val NON_INTERFACE_FUNCTION_NAMES = setOf("equals", "hashCode", "toString", "close")
 
     fun create(
       pluginContext: IrPluginContext,
