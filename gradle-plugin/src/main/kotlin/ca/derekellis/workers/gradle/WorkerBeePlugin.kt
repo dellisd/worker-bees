@@ -13,26 +13,7 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
-class WorkerBeePlugin : KotlinCompilerPluginSupportPlugin {
-  override fun applyToCompilation(
-    kotlinCompilation: KotlinCompilation<*>
-  ): Provider<List<SubpluginOption>> {
-    return kotlinCompilation.target.project.provider {
-      listOf() // No options.
-    }
-  }
-
-  override fun getCompilerPluginId(): String = "ca.derekellis.workers.kotlin"
-
-  override fun getPluginArtifact(): SubpluginArtifact =
-    SubpluginArtifact(
-      groupId = "ca.derekellis.worker",
-      artifactId = "kotlin-plugin",
-      // version TODO
-    )
-
-  override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
-
+class WorkerBeePlugin : WorkerPluginBase() {
   override fun apply(target: Project) {
     val kotlinExtension =
       target.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return

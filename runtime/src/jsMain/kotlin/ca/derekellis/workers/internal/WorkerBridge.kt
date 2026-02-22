@@ -39,15 +39,15 @@ internal class BrowserWorkerBridge(private val worker: Worker) : WorkerBridge {
   override suspend fun postMessage(
     message: WorkerMessage,
     codec: WorkerMessage.Codec,
-  ): WorkerMessage? {
+  ): WorkerMessage? = coroutineScope {
     val responses = incomingMessages(codec)
     val deferredResponse =
       if (message is HasResponse)
-        coroutineScope { async { responses.first { it.callId == message.callId } } }
+         async { responses.first { it.callId == message.callId } }
       else null
 
     worker.postMessage(codec.encode(message))
-    return deferredResponse?.await()
+    return@coroutineScope deferredResponse?.await()
   }
 
   override fun terminate() {

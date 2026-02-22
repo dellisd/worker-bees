@@ -22,6 +22,7 @@ class WorkerHandle internal constructor(private val endpoint: Endpoint) : AutoCl
     error("Unexpected call to WorkerHandle.bind. Is the worker-bee plugin applied?")
   }
 
+  @PublishedApi
   internal fun <T : WorkerService> bind(
     name: String,
     instance: T,
@@ -34,8 +35,9 @@ class WorkerHandle internal constructor(private val endpoint: Endpoint) : AutoCl
     error("Unexpected call to WorkerHandle.take. Is the worker-bee plugin applied?")
   }
 
-  internal fun <T : WorkerService> take(name: String, serviceAdapter: WorkerServiceAdapter<T>) {
-    endpoint.take(name, serviceAdapter)
+  @PublishedApi
+  internal fun <T : WorkerService> take(name: String, serviceAdapter: WorkerServiceAdapter<T>): T {
+    return endpoint.take(name, serviceAdapter)
   }
 
   override fun close() {

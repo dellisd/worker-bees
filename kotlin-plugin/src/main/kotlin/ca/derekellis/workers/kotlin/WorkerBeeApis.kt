@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isVararg
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.StandardClassIds
 
 internal class WorkerBeeApis private constructor(private val pluginContext: IrPluginContext) {
@@ -33,6 +34,7 @@ internal class WorkerBeeApis private constructor(private val pluginContext: IrPl
     val outboundServiceClassId = workersInternalFqPackage.classId("OutboundService")
     val outboundHandlerClassId = workersInternalFqPackage.classId("OutboundHandler")
     val functionHandlerClassId = workersInternalFqPackage.classId("FunctionHandler")
+    val workerHandleClassId = workersFqPackage.classId("WorkerHandle")
 
     private val kotlinCollectionsFqPackage = FqPackageName("kotlin.collections")
 
@@ -43,6 +45,7 @@ internal class WorkerBeeApis private constructor(private val pluginContext: IrPl
       serializationModulesFqPackage.classId("SerializersModule")
     val contextualClassId = serializationFqPackage.classId("Contextual")
     val jsonElementClassId = serializationJsonFqPackage.classId("JsonElement")
+    private val lenientUnitSerializerClassId = workersInternalFqPackage.classId("LenientUnitSerializer")
   }
 
   val any: IrClassSymbol
@@ -104,6 +107,14 @@ internal class WorkerBeeApis private constructor(private val pluginContext: IrPl
           it.owner.parameters[0].type.getClass()?.classId == serializersModuleClassId
       }
 
+  /** This symbol for `serializer<T>()`. */
+  val serializerFunctionNoReceiver: IrSimpleFunctionSymbol
+    get() = pluginContext.referenceFunctions(serializationFqPackage.callableId("serializer"))
+      .single {
+        it.owner.parameters.isEmpty() &&
+          it.owner.typeParameters.size == 1
+      }
+
   val serializersModule: IrClassSymbol
     get() = pluginContext.referenceClass(serializersModuleClassId)!!
 
@@ -131,4 +142,25 @@ internal class WorkerBeeApis private constructor(private val pluginContext: IrPl
 
   val listOfKSerializerStar: IrSimpleType
     get() = list.typeWith(kSerializer.starProjectedType)
+
+  val lenientUnitSerializer: IrClassSymbol
+    get() = pluginContext.referenceClass(lenientUnitSerializerClassId)!!
+
+  /** Keys are renderings of functions like `Zipline.take()` and values are their rewrite targets. */
+  val workerServiceAdapterFunctions: Map<String, IrSimpleFunctionSymbol> = mapOf(
+    rewritePair(workerHandleClassId.callableId("take")),
+    rewritePair(workerHandleClassId.callableId("bind")),
+  )
+
+  /** Maps overloads from the user-friendly function to its internal rewrite target. */
+  private fun rewritePair(funName: CallableId): Pair<String, IrSimpleFunctionSymbol> {
+    val overloads = pluginContext.referenceFunctions(funName)
+    val rewriteTarget = overloads.single {
+      it.owner.parameters.lastOrNull()?.type?.getClass()?.classId == workerServiceAdapterClassId
+    }
+    val original = overloads.single {
+      it.owner.parameters.size + 1 == rewriteTarget.owner.parameters.size
+    }
+    return original.toString() to rewriteTarget
+  }
 }

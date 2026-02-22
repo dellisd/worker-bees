@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 @Suppress("unused", "UnstableApiUsage")
-class WorkerHostPlugin : Plugin<Project> {
+class WorkerHostPlugin : WorkerPluginBase() {
   override fun apply(target: Project) {
     val kotlinExtension =
       target.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return

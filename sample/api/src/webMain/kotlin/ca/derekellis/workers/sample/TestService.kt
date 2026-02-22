@@ -6,4 +6,6 @@ interface TestService : WorkerService {
   suspend fun test(): String
 
   suspend fun square(value: Int): Int
+
+  suspend fun complexType(): RenderedDateTime
 }

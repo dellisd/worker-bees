@@ -62,14 +62,6 @@ internal class Endpoint(
     }
   }
 
-  fun newFunctionCall(
-    serviceName: String,
-    functionId: String,
-    encodedArgs: String,
-  ): WorkerMessage.FunctionCall {
-    return WorkerMessage.FunctionCall(messageCounter++, serviceName, functionId, encodedArgs)
-  }
-
   @Suppress("UNCHECKED_CAST")
   private fun <T : WorkerService> serviceType(
     adapter: WorkerServiceAdapter<T>

@@ -1,5 +1,7 @@
 package ca.derekellis.workers.sample
 
+import kotlin.js.Date
+
 class RealTestService : TestService {
   override suspend fun test(): String {
     return "Hello from the worker!"
@@ -9,5 +11,11 @@ class RealTestService : TestService {
     return value * value
   }
 
-  fun hello() {}
+  override suspend fun complexType(): RenderedDateTime {
+    val date = Date()
+    return RenderedDateTime(
+      date = date.toLocaleDateString(emptyArray()),
+      time = date.toLocaleTimeString(emptyArray())
+    )
+  }
 }

@@ -69,3 +69,8 @@ interface SampleService : WorkerService {
   abstract suspend fun hello(message: String): String
 
 }
+
+fun main() {
+  val handle: WorkerHandle = Companion.newHostHandle()
+  handle.take<SampleService>(name = "sampleService", serviceAdapter = Adapter(serializers = listOf<KSerializer<*>>(elements = []))) /*~> Unit */
+}

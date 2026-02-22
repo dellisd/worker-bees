@@ -19,13 +19,20 @@ fun main() {
   renderComposable(rootElementId = "root") {
     var message by remember { mutableStateOf<String?>(null) }
     var value by remember { mutableStateOf<Int?>(null) }
+    var complexType by remember { mutableStateOf<RenderedDateTime?>(null) }
     Div { Text("Hello World") }
     message?.let { Div { Text(it) } }
 
     value?.let { Div { Text("Squared value: $it") } }
 
+    complexType?.let { Div {
+      Text("Rendered at ${it.time} on ${it.date}")
+    }}
+
     LaunchedEffect(Unit) { message = testService.test() }
 
     LaunchedEffect(Unit) { value = testService.square(5) }
+
+    LaunchedEffect(Unit) { complexType = testService.complexType() }
   }
 }

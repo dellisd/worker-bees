@@ -8,3 +8,4 @@ abstract interface /SampleService : ca.derekellis.workers/WorkerService { // /Sa
     abstract suspend fun hello(kotlin/String): kotlin/String // /SampleService.hello|hello(kotlin.String){}[0]
     final object Companion // /SampleService.Companion|null[0]
 }
+final fun /main() // /main|main(){}[0]

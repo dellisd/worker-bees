@@ -4,6 +4,7 @@ import kotlin.collections.plusAssign
 import org.jetbrains.kotlin.backend.common.ScopeWithIr
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addTypeParameter
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irExprBody
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetObjectValue
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
@@ -31,8 +33,11 @@ import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
@@ -63,6 +68,54 @@ internal class WorkerServiceAdapterGenerator(
       "WorkerHandle.take()",
       original.defaultType,
     )
+
+  fun adapterExpression(type: IrSimpleType): IrExpression {
+    val adapterClass = generateAdapterIfAbsent()
+    val irBlockBodyBuilder = irBlockBodyBuilder(pluginContext, scope, original)
+    return irBlockBodyBuilder.adapterExpression(adapterClass, type)
+  }
+
+  private fun IrBuilderWithScope.adapterExpression(
+    adapterClass: IrClass,
+    adapterType: IrSimpleType,
+  ): IrExpression {
+    // listOf(
+    //   serializer<String>(),
+    //   serializer<Long>(),
+    // )
+
+    val serializersExpressions = adapterType.arguments.map { argumentType ->
+      val argument = argumentType as IrType
+      when {
+        argument.isUnit() -> irGetObjectValue(
+          classSymbol = workerBeeApis.lenientUnitSerializer,
+          type = workerBeeApis.kSerializer.typeWith(argument)
+        )
+
+        else -> irCall(
+          callee = workerBeeApis.serializerFunctionNoReceiver,
+          type = workerBeeApis.kSerializer.typeWith(argument),
+        ).apply {
+          typeArguments[0] = argumentType
+        }
+      }
+    }
+    val serializersList = irCall(workerBeeApis.listOfFunction).apply {
+      type = workerBeeApis.listOfKSerializerStar
+      typeArguments[0] = workerBeeApis.kSerializer.starProjectedType
+      arguments[0] = irVararg(
+        workerBeeApis.kSerializer.starProjectedType,
+        serializersExpressions
+      )
+    }
+
+    return irCallConstructor(
+      callee = adapterClass.constructors.single().symbol,
+      typeArguments = adapterType.arguments.map { it as IrType }
+    ).apply {
+      arguments[0] = serializersList
+    }
+  }
 
   fun generateAdapterIfAbsent(): IrClass {
     val companion = getOrCreateCompanion(original, pluginContext)
