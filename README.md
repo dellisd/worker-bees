@@ -18,19 +18,16 @@ class RealMyInterface : MyInterface {
 }
 
 fun main() {
-  WorkerRegistry().init()
+  val handle = WorkerHandle.newBrowserHandle()
+  handle.bind<MyInterface>("myInterface", RealMyInterface())
 }
 
 // Browser usage
 fun main() {
-  val worker = WorkerHandle(Worker("/worker.js"))
+  val handle = WorkerHandle.newWorkerHandle(Worker("/worker.js"))
 
-  val testService = worker.takeBinding(TestService::class)
+  val testService = handle.take<MyInterface>("myInterface")
   
   println(testService.hello("world"))
 }
 ```
-
-WIP:
-* :sample:browser:jsProcessResources task is incorrectly skipped when :sample:worker is rebundled.
-* Encoding/decoding function calls is done manually, but can be generated automatically like in [Zipline](https://github.com/cashapp/zipline).
